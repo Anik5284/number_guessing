@@ -1,108 +1,300 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Number Guessing Game</title>
-<style>
-  body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
-  .card { border: 1px solid #ddd; border-radius: 12px; padding: 1rem; }
-  button { padding: .6rem 1rem; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; }
-  input { padding: .5rem .75rem; border-radius: 8px; border: 1px solid #ccc; width: 100%; max-width: 200px; }
-  .row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
-  .log { margin-top: 1rem; white-space: pre-line; background: #fafafa; border-radius: 8px; padding: .75rem; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Number Guessing Game • Pro UI</title>
+  <meta name="description" content="A polished, responsive number guessing game with professional HTML/CSS and vanilla JS." />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg-soft: #111638;
+      --card: #141a3a;
+      --text: #e8ebff;
+      --muted: #a6b0d4;
+      --brand: #7c9cff;
+      --brand-600: #6b87e0;
+      --accent: #5be9b9;
+      --danger: #ff6b6b;
+      --warn: #ffc15e;
+      --ok: #62d39b;
+      --ring: rgba(124, 156, 255, .45);
+      --shadow: 0 20px 40px rgba(0,0,0,.35), 0 8px 20px rgba(20, 30, 70, .45);
+      --radius: 16px;
+      --trans: 180ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f7fb; --bg-soft: #eef1fb; --card: #ffffff; --text: #111433; --muted: #536188;
+        --brand: #3d63ff; --brand-600: #2f4ccf; --accent: #2ecc9a; --ring: rgba(61, 99, 255, .32);
+        --shadow: 0 16px 32px rgba(31, 47, 119, .15), 0 6px 16px rgba(0,0,0,.06);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text); background: radial-gradient(1200px 800px at 20% -10%, #1a2250, transparent 70%),
+                               radial-gradient(800px 800px at 100% 0, #102c5f, transparent 60%),
+                               linear-gradient(180deg, var(--bg), var(--bg-soft));
+      display: grid; place-items: center; padding: 32px 16px;
+    }
+
+    .container { width: 100%; max-width: 960px; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px;
+    }
+    .title {
+      display: flex; align-items: center; gap: 12px; letter-spacing: .2px;
+    }
+    .logo {
+      width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 800;
+      background: linear-gradient(135deg, var(--brand), var(--accent)); color: #0b0e1d; box-shadow: var(--shadow);
+    }
+    h1 { font-size: clamp(22px, 2.4vw, 28px); margin: 0; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-top: 2px; }
+
+    .card {
+      background: color-mix(in oklab, var(--card) 92%, black 8%);
+      border: 1px solid color-mix(in oklab, var(--brand) 15%, transparent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px; backdrop-filter: saturate(120%) blur(6px);
+    }
+
+    .grid {
+      display: grid; gap: 16px; grid-template-columns: 1.2fr .8fr; align-items: start;
+    }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+    .controls, .play {
+      display: grid; gap: 12px;
+    }
+
+    .field { display: grid; gap: 6px; }
+    label { font-size: 13px; color: var(--muted); }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .input, .button, select {
+      appearance: none; width: 100%; border: 1px solid color-mix(in oklab, var(--brand) 15%, transparent);
+      background: color-mix(in oklab, var(--card) 88%, black 12%);
+      color: var(--text); padding: 12px 14px; border-radius: 12px; outline: none; transition: box-shadow var(--trans), transform var(--trans), border-color var(--trans);
+    }
+    .input:focus, select:focus { box-shadow: 0 0 0 6px var(--ring); border-color: var(--brand); }
+
+    .button {
+      font-weight: 600; cursor: pointer; text-align: center; user-select: none;
+      background: linear-gradient(180deg, color-mix(in oklab, var(--brand) 78%, white 6%), color-mix(in oklab, var(--brand-600) 86%, black 6%));
+      border: 1px solid color-mix(in oklab, var(--brand) 30%, black 20%);
+    }
+    .button:hover { transform: translateY(-1px); }
+    .button:active { transform: translateY(0); }
+    .button.secondary { background: color-mix(in oklab, var(--card) 85%, black 10%); border-color: color-mix(in oklab, var(--brand) 18%, transparent); }
+
+    .status {
+      border-radius: 12px; padding: 12px 14px; background: color-mix(in oklab, var(--card) 85%, black 12%);
+      border: 1px dashed color-mix(in oklab, var(--brand) 25%, transparent);
+      min-height: 48px; display: grid; align-items: center; font-size: 14px;
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { padding: 6px 10px; border-radius: 999px; font-size: 12px; border: 1px solid transparent; }
+    .chip.low { background: color-mix(in oklab, var(--warn) 22%, transparent); border-color: color-mix(in oklab, var(--warn) 40%, transparent); }
+    .chip.high { background: color-mix(in oklab, var(--brand) 15%, transparent); border-color: color-mix(in oklab, var(--brand) 35%, transparent); }
+    .chip.correct { background: color-mix(in oklab, var(--ok) 22%, transparent); border-color: color-mix(in oklab, var(--ok) 40%, transparent); }
+
+    .history { margin-top: 12px; border-top: 1px dashed color-mix(in oklab, var(--brand) 18%, transparent); padding-top: 12px; }
+    .history-list { display: grid; gap: 8px; max-height: 220px; overflow: auto; padding-right: 2px; }
+
+    .item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid color-mix(in oklab, var(--brand) 16%, transparent);
+            border-radius: 12px; background: color-mix(in oklab, var(--card) 88%, black 10%); }
+    .item strong { font-variation-settings: 'wght' 650; }
+    .badge { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid transparent; }
+    .b-hot { background: color-mix(in oklab, var(--danger) 22%, transparent); border-color: color-mix(in oklab, var(--danger) 36%, transparent); }
+    .b-warm { background: color-mix(in oklab, var(--warn) 22%, transparent); border-color: color-mix(in oklab, var(--warn) 36%, transparent); }
+    .b-cold { background: color-mix(in oklab, var(--brand) 22%, transparent); border-color: color-mix(in oklab, var(--brand) 36%, transparent); }
+
+    .progress {
+      height: 10px; border-radius: 999px; background: color-mix(in oklab, var(--card) 80%, black 10%);
+      border: 1px solid color-mix(in oklab, var(--brand) 15%, transparent); overflow: hidden;
+    }
+    .bar { height: 100%; width: 100%; transform-origin: left; transition: width 260ms ease; background: linear-gradient(90deg, var(--accent), var(--brand)); }
+
+    footer { margin-top: 20px; color: var(--muted); font-size: 12px; text-align: center; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
 </head>
 <body>
-  <h1>🎯 Number Guessing Game</h1>
-  <div class="card">
-    <div class="row">
-      <label>Range:
-        <input id="low" type="number" value="1" />
-        –
-        <input id="high" type="number" value="100" />
-      </label>
-      <label>Max tries:
-        <input id="tries" type="number" value="7" />
-      </label>
-      <button id="start">Start</button>
-      <button id="reset" disabled>Reset</button>
-    </div>
+  <div class="container">
+    <header>
+      <div class="title">
+        <div class="logo" aria-hidden="true">#</div>
+        <div>
+          <h1>Number Guessing Game</h1>
+          <div class="subtitle">Polished, responsive UI • Vanilla JS</div>
+        </div>
+      </div>
+      <button id="resetAll" class="button secondary" type="button" title="Reset settings & game">Reset All</button>
+    </header>
 
-    <div class="row" style="margin-top:1rem;">
-      <input id="guess" type="number" placeholder="Your guess" disabled />
-      <button id="submit" disabled>Guess</button>
-    </div>
+    <section class="card">
+      <div class="grid">
+        <div class="controls" aria-label="Game settings">
+          <div class="field">
+            <label for="rangeLow">Range start</label>
+            <input id="rangeLow" class="input" type="number" value="1" min="-100000" />
+          </div>
+          <div class="field">
+            <label for="rangeHigh">Range end</label>
+            <input id="rangeHigh" class="input" type="number" value="100" min="-99999" />
+          </div>
+          <div class="field">
+            <label for="maxTries">Max tries</label>
+            <select id="maxTries" class="input">
+              <option value="5">5</option>
+              <option value="7" selected>7</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </div>
+          <div class="chips" aria-hidden="true">
+            <span class="chip low">Low</span>
+            <span class="chip high">High</span>
+            <span class="chip correct">Correct</span>
+          </div>
+          <button id="startBtn" class="button" type="button">Start Game</button>
+        </div>
 
-    <div id="status" style="margin-top:.75rem;"></div>
-    <div class="log" id="log"></div>
+        <div class="play" aria-label="Play area">
+          <div class="field">
+            <label for="guessInput">Your Guess</label>
+            <div class="row">
+              <input id="guessInput" class="input" type="number" placeholder="Type a number" disabled />
+              <button id="guessBtn" class="button" type="button" disabled>Guess</button>
+            </div>
+          </div>
+
+          <div id="status" class="status" role="status" aria-live="polite">Set a range and start the game.</div>
+
+          <div class="field">
+            <label>Tries Left</label>
+            <div class="progress" aria-hidden="true"><div id="bar" class="bar" style="width:100%"></div></div>
+          </div>
+
+          <div class="history">
+            <div class="field">
+              <label>History</label>
+              <div id="history" class="history-list" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Keyboard-friendly: press <strong>Enter</strong> to submit your guess.
+    </footer>
   </div>
 
-<script>
-(function () {
-  let secret = null, low = 1, high = 100, maxTries = 7, attempt = 0, playing = false;
-  const el = (id) => document.getElementById(id);
-  const status = el("status"), log = el("log"), guess = el("guess");
-  const startBtn = el("start"), resetBtn = el("reset"), submitBtn = el("submit");
+  <script>
+    (function() {
+      'use strict';
+      const els = (id) => document.getElementById(id);
+      const lowEl = els('rangeLow');
+      const highEl = els('rangeHigh');
+      const triesEl = els('maxTries');
+      const startBtn = els('startBtn');
+      const resetAll = els('resetAll');
+      const input = els('guessInput');
+      const guessBtn = els('guessBtn');
+      const status = els('status');
+      const history = els('history');
+      const bar = els('bar');
 
-  function setUI(active) {
-    guess.disabled = submitBtn.disabled = !active;
-    resetBtn.disabled = !active;
-    startBtn.disabled = active;
-  }
+      let secret = null, attempt = 0, maxTries = 7, low = 1, high = 100, playing = false;
 
-  function start() {
-    low = parseInt(el("low").value, 10);
-    high = parseInt(el("high").value, 10);
-    maxTries = parseInt(el("tries").value, 10);
+      function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
-    if (isNaN(low) || isNaN(high) || isNaN(maxTries) || low >= high || maxTries <= 0) {
-      status.textContent = "Please enter a valid range and number of tries.";
-      return;
-    }
-    secret = Math.floor(Math.random() * (high - low + 1)) + low;
-    attempt = 0;
-    playing = true;
-    log.textContent = "";
-    status.textContent = `I'm thinking of a number between ${low} and ${high}. You have ${maxTries} tries.`;
-    setUI(true);
-    guess.focus();
-  }
+      function setUI(active){
+        input.disabled = guessBtn.disabled = !active;
+        startBtn.disabled = active;
+        input.value = '';
+        if (active) input.focus();
+      }
 
-  function reset() {
-    playing = false;
-    secret = null;
-    status.textContent = "Game reset. Click Start to play again.";
-    setUI(false);
-  }
+      function setBar(){
+        const left = Math.max(0, maxTries - attempt);
+        const pct = (left / maxTries) * 100;
+        bar.style.width = pct + '%';
+      }
 
-  function submit() {
-    if (!playing) return;
-    const val = parseInt(guess.value, 10);
-    if (isNaN(val)) { status.textContent = "Enter a whole number."; return; }
-    if (val < low || val > high) { status.textContent = `Stay within ${low}–${high}.`; return; }
+      function hotness(val){
+        const span = high - low; if (span <= 0) return 'cold';
+        const dist = Math.abs(secret - val);
+        const r = dist / span; // ratio of distance to total span
+        if (r <= 0.05) return 'hot';
+        if (r <= 0.15) return 'warm';
+        return 'cold';
+      }
 
-    attempt++;
-    if (val === secret) {
-      status.textContent = `✅ Correct! The number was ${secret}. You got it in ${attempt}/${maxTries} tries.`;
-      playing = false; setUI(false); return;
-    }
-    const hint = val < secret ? "too low" : "too high";
-    log.textContent += `Try ${attempt}: ${val} — ${hint}\n`;
-    if (attempt >= maxTries) {
-      status.textContent = `😅 Out of tries! The number was ${secret}.`;
-      playing = false; setUI(false); return;
-    }
-    status.textContent = `${hint}. ${maxTries - attempt} tries left.`;
-    guess.value = "";
-    guess.focus();
-  }
+      function addHistory(val, relation){
+        const item = document.createElement('div');
+        item.className = 'item';
+        const left = document.createElement('div');
+        const right = document.createElement('div');
+        const strong = document.createElement('strong');
+        strong.textContent = val;
+        left.appendChild(strong);
+        const sub = document.createElement('span');
+        sub.className = 'badge ' + (hotness(val) === 'hot' ? 'b-hot' : hotness(val) === 'warm' ? 'b-warm' : 'b-cold');
+        sub.textContent = hotness(val).toUpperCase();
+        left.appendChild(document.createTextNode(' '));
+        left.appendChild(sub);
+        right.textContent = relation;
+        item.append(left, right);
+        history.prepend(item);
+      }
 
-  startBtn.addEventListener("click", start);
-  resetBtn.addEventListener("click", reset);
-  submitBtn.addEventListener("click", submit);
-  guess.addEventListener("keyup", (e) => { if (e.key === "Enter") submit(); });
-})();
-</script>
+      function start(){
+        low = parseInt(lowEl.value, 10); high = parseInt(highEl.value, 10); maxTries = parseInt(triesEl.value, 10);
+        if ([low, high, maxTries].some(Number.isNaN) || low >= high || maxTries <= 0) {
+          status.textContent = 'Please enter a valid range and number of tries.';
+          return;
+        }
+        secret = Math.floor(Math.random() * (high - low + 1)) + low;
+        attempt = 0; playing = true; history.innerHTML = '';
+        status.textContent = `I\'m thinking of a number between ${low} and ${high}. You have ${maxTries} tries.`;
+        setUI(true); setBar();
+      }
+
+      function end(msg){ playing = false; status.textContent = msg; setUI(false); }
+
+      function submit(){
+        if (!playing) return;
+        const val = parseInt(input.value, 10);
+        if (Number.isNaN(val)) { status.textContent = 'Enter a whole number.'; return; }
+        if (val < low || val > high) { status.textContent = `Stay within ${low}–${high}.`; return; }
+        attempt++;
+        setBar();
+        if (val === secret) { addHistory(val, 'Correct!'); end(`✅ Correct! The number was ${secret}. You got it in ${attempt}/${maxTries} tries.`); return; }
+        const relation = val < secret ? 'Too low' : 'Too high';
+        addHistory(val, relation);
+        const left = maxTries - attempt;
+        if (left <= 0) { end(`😅 Out of tries. The number was ${secret}.`); return; }
+        const hint = hotness(val);
+        const hintMsg = hint === 'hot' ? 'You\'re 🔥 very close!' : hint === 'warm' ? 'Getting warmer.' : 'Pretty far.';
+        status.textContent = `${relation}. ${left} ${left === 1 ? 'try' : 'tries'} left. ${hintMsg}`;
+        input.value = ''; input.focus();
+      }
+
+      startBtn.addEventListener('click', start);
+      resetAll.addEventListener('click', () => { lowEl.value = 1; highEl.value = 100; triesEl.value = 7; history.innerHTML=''; setBar(); setUI(false); status.textContent = 'Set a range and start the game.'; playing = false; });
+      guessBtn.addEventListener('click', submit);
+      input.addEventListener('keyup', (e) => { if (e.key === 'Enter') submit(); });
+    })();
+  </script>
 </body>
 </html>
