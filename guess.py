@@ -19,4 +19,11 @@ def guess_game(low=1, high=100, max_tries=7):
         print(f"❌ {hint}.")
     print(f"😅 Out of tries! The number was {secret}.")
 
-
+if __name__ == "__main__":
+    print("Number Guessing Game")
+    while True:
+        guess_game()
+        again = input("Play again? (y/n): ").strip().lower()
+        if again != "y":
+            print("Thanks for playing!")
+            break
