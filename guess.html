@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Number Guessing Game</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+  .card { border: 1px solid #ddd; border-radius: 12px; padding: 1rem; }
+  button { padding: .6rem 1rem; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; }
+  input { padding: .5rem .75rem; border-radius: 8px; border: 1px solid #ccc; width: 100%; max-width: 200px; }
+  .row { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+  .log { margin-top: 1rem; white-space: pre-line; background: #fafafa; border-radius: 8px; padding: .75rem; }
+</style>
+</head>
+<body>
+  <h1>🎯 Number Guessing Game</h1>
+  <div class="card">
+    <div class="row">
+      <label>Range:
+        <input id="low" type="number" value="1" />
+        –
+        <input id="high" type="number" value="100" />
+      </label>
+      <label>Max tries:
+        <input id="tries" type="number" value="7" />
+      </label>
+      <button id="start">Start</button>
+      <button id="reset" disabled>Reset</button>
+    </div>
+
+    <div class="row" style="margin-top:1rem;">
+      <input id="guess" type="number" placeholder="Your guess" disabled />
+      <button id="submit" disabled>Guess</button>
+    </div>
+
+    <div id="status" style="margin-top:.75rem;"></div>
+    <div class="log" id="log"></div>
+  </div>
+
+<script>
+(function () {
+  let secret = null, low = 1, high = 100, maxTries = 7, attempt = 0, playing = false;
+  const el = (id) => document.getElementById(id);
+  const status = el("status"), log = el("log"), guess = el("guess");
+  const startBtn = el("start"), resetBtn = el("reset"), submitBtn = el("submit");
+
+  function setUI(active) {
+    guess.disabled = submitBtn.disabled = !active;
+    resetBtn.disabled = !active;
+    startBtn.disabled = active;
+  }
+
+  function start() {
+    low = parseInt(el("low").value, 10);
+    high = parseInt(el("high").value, 10);
+    maxTries = parseInt(el("tries").value, 10);
+
+    if (isNaN(low) || isNaN(high) || isNaN(maxTries) || low >= high || maxTries <= 0) {
+      status.textContent = "Please enter a valid range and number of tries.";
+      return;
+    }
+    secret = Math.floor(Math.random() * (high - low + 1)) + low;
+    attempt = 0;
+    playing = true;
+    log.textContent = "";
+    status.textContent = `I'm thinking of a number between ${low} and ${high}. You have ${maxTries} tries.`;
+    setUI(true);
+    guess.focus();
+  }
+
+  function reset() {
+    playing = false;
+    secret = null;
+    status.textContent = "Game reset. Click Start to play again.";
+    setUI(false);
+  }
+
+  function submit() {
+    if (!playing) return;
+    const val = parseInt(guess.value, 10);
+    if (isNaN(val)) { status.textContent = "Enter a whole number."; return; }
+    if (val < low || val > high) { status.textContent = `Stay within ${low}–${high}.`; return; }
+
+    attempt++;
+    if (val === secret) {
+      status.textContent = `✅ Correct! The number was ${secret}. You got it in ${attempt}/${maxTries} tries.`;
+      playing = false; setUI(false); return;
+    }
+    const hint = val < secret ? "too low" : "too high";
+    log.textContent += `Try ${attempt}: ${val} — ${hint}\n`;
+    if (attempt >= maxTries) {
+      status.textContent = `😅 Out of tries! The number was ${secret}.`;
+      playing = false; setUI(false); return;
+    }
+    status.textContent = `${hint}. ${maxTries - attempt} tries left.`;
+    guess.value = "";
+    guess.focus();
+  }
+
+  startBtn.addEventListener("click", start);
+  resetBtn.addEventListener("click", reset);
+  submitBtn.addEventListener("click", submit);
+  guess.addEventListener("keyup", (e) => { if (e.key === "Enter") submit(); });
+})();
+</script>
+</body>
+</html>
